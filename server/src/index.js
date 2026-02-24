@@ -59,7 +59,7 @@ async function start() {
   try {
     await getPool();
     app.listen(PORT, '0.0.0.0', () => {
-      console.log(`[Server] Pulse MuCMS API running on port ${PORT}`);
+      console.log(`[Server] GxGA MuCMS API running on port ${PORT}`);
       console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (err) {

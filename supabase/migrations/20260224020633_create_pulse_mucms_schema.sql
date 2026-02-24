@@ -1,5 +1,5 @@
 /*
-  # Pulse MuCMS Database Schema
+  # GxGA MuCMS Database Schema
 
   1. New Tables
     - `profiles` - User profiles with game-related data

@@ -55,33 +55,33 @@ export default function HomePage() {
 
       {selectedNews && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedNews(null)} />
-          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSelectedNews(null)} />
+          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto card-dark shadow-2xl shadow-black/60">
             {selectedNews.image_url && (
               <img
                 src={selectedNews.image_url}
                 alt={selectedNews.title}
-                className="w-full h-56 object-cover rounded-t-2xl"
+                className="w-full h-56 object-cover rounded-t-xl"
               />
             )}
             <div className="p-6">
               <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded ${
-                selectedNews.category === 'featured' ? 'bg-blue-600 text-white' :
-                selectedNews.category === 'event' ? 'bg-emerald-500 text-white' :
-                selectedNews.category === 'patch_note' ? 'bg-red-500 text-white' :
-                selectedNews.category === 'announcement' ? 'bg-amber-500 text-white' :
-                'bg-blue-500 text-white'
+                selectedNews.category === 'featured' ? 'bg-gradient-to-r from-[#b8862f] to-[#c9a44a] text-[#0a0a0f]' :
+                selectedNews.category === 'event' ? 'bg-emerald-500/15 text-emerald-400' :
+                selectedNews.category === 'patch_note' ? 'bg-red-500/15 text-red-400' :
+                selectedNews.category === 'announcement' ? 'bg-[#b8862f]/20 text-[#d4af52]' :
+                'bg-[#8b5c28]/30 text-[#c9a44a]'
               }`}>
                 {selectedNews.category.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
               </span>
-              <h2 className="text-2xl font-bold text-white mt-3 mb-2">{selectedNews.title}</h2>
-              <p className="text-xs text-slate-500 mb-4">
+              <h2 className="text-2xl font-cinzel font-bold text-[#d4af52] mt-3 mb-2">{selectedNews.title}</h2>
+              <p className="text-xs text-[#5a5040] mb-4">
                 {new Date(selectedNews.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
-              <div className="text-slate-300 leading-relaxed whitespace-pre-line">{selectedNews.content}</div>
+              <div className="text-[#d4c9b0] leading-relaxed whitespace-pre-line text-sm">{selectedNews.content}</div>
               <button
                 onClick={() => setSelectedNews(null)}
-                className="mt-6 px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-lg transition-colors"
+                className="mt-6 px-5 py-2 text-sm font-medium text-[#d4c9b0] border border-[#8b5c28]/25 rounded-lg hover:bg-[#8b5c28]/10 transition-colors"
               >
                 Close
               </button>

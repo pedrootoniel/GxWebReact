@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Swords } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface LoginModalProps {
@@ -34,20 +34,25 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8 animate-fade-in">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md card-dark shadow-2xl shadow-black/60 p-8 animate-fade-in">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-[#5a5040] hover:text-[#d4c9b0] transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="text-2xl font-bold text-white text-center mb-6">Login</h2>
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#b8862f] to-[#8b5c28] flex items-center justify-center">
+            <Swords className="w-4 h-4 text-[#0a0a0f]" />
+          </div>
+          <h2 className="font-cinzel text-2xl font-bold text-[#d4af52] tracking-wide">Login</h2>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            <label className="block text-sm font-medium text-[#8a7e6a] mb-1.5">
               {muMode ? 'Username' : 'Email'}
             </label>
             <input
@@ -57,19 +62,19 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
               placeholder={muMode ? 'Enter your username' : 'Enter your email'}
               required
               maxLength={muMode ? 10 : undefined}
-              className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="input-dark w-full"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+            <label className="block text-sm font-medium text-[#8a7e6a] mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
-              className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="input-dark w-full"
             />
           </div>
 
@@ -82,18 +87,20 @@ export default function LoginModal({ isOpen, onClose, onSwitchToRegister }: Logi
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="w-full py-2.5 btn-gold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             Login
           </button>
         </form>
 
-        <p className="text-center text-sm text-slate-400 mt-5">
+        <div className="divider-gold mt-5 mb-4" />
+
+        <p className="text-center text-sm text-[#5a5040]">
           Don't have an account?{' '}
           <button
             onClick={onSwitchToRegister}
-            className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+            className="text-[#c9a44a] hover:text-[#d4af52] font-medium transition-colors"
           >
             Register
           </button>

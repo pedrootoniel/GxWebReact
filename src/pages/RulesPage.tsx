@@ -31,11 +31,11 @@ export default function RulesPage() {
   return (
     <Layout title="Rules" subtitle="Please read and follow all server rules to maintain a fair gaming environment.">
       <div className="space-y-3">
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-start gap-3 mb-6">
-          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="bg-[#b8862f]/8 border border-[#b8862f]/20 rounded-xl p-4 flex items-start gap-3 mb-6">
+          <AlertTriangle className="w-5 h-5 text-[#c9a44a] shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-amber-400">Important Notice</p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-sm font-semibold text-[#c9a44a]">Important Notice</p>
+            <p className="text-xs text-[#8a7e6a] mt-1">
               Violating any of these rules may result in temporary or permanent account suspension. All decisions made by the staff are final.
             </p>
           </div>
@@ -44,22 +44,22 @@ export default function RulesPage() {
         {rules.map((rule) => (
           <div
             key={rule.id}
-            className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden transition-all"
+            className="card-dark overflow-hidden transition-all"
           >
             <button
               onClick={() => setExpandedId(expandedId === rule.id ? null : rule.id)}
-              className="w-full flex items-center justify-between p-5 text-left hover:bg-slate-800/80 transition-colors"
+              className="w-full flex items-center justify-between p-5 text-left hover:bg-[#8b5c28]/5 transition-colors"
             >
-              <h3 className="text-base font-bold text-white">{rule.title}</h3>
+              <h3 className="text-base font-bold text-[#d4c9b0]">{rule.title}</h3>
               {expandedId === rule.id ? (
-                <ChevronUp className="w-5 h-5 text-slate-400" />
+                <ChevronUp className="w-5 h-5 text-[#8b5c28]" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-slate-400" />
+                <ChevronDown className="w-5 h-5 text-[#5a5040]" />
               )}
             </button>
             {expandedId === rule.id && (
-              <div className="px-5 pb-5 border-t border-slate-700/30">
-                <div className="text-sm text-slate-300 leading-relaxed whitespace-pre-line pt-4">
+              <div className="px-5 pb-5 border-t border-[#8b5c28]/10">
+                <div className="text-sm text-[#8a7e6a] leading-relaxed whitespace-pre-line pt-4">
                   {rule.content}
                 </div>
               </div>

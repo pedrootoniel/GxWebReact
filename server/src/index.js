@@ -14,22 +14,22 @@ const { getPool, closePool } = require('./config/database');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(helmet());
-
-const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
-  .split(',')
-  .map((o) => o.trim());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 
 app.use(cors({
-  origin: corsOrigins,
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: false,
 }));
+
+app.options('*', cors());
 
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
-  max: parseInt(process.env.RATE_LIMIT_MAX || '100'),
+  max: parseInt(process.env.RATE_LIMIT_MAX || '200'),
   message: { error: 'Too many requests. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -52,7 +52,7 @@ app.use(errorHandler);
 async function start() {
   try {
     await getPool();
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`[Server] Pulse MuCMS API running on port ${PORT}`);
       console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
     });

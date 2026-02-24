@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, UserPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface RegisterModalProps {
@@ -47,16 +47,21 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8 animate-fade-in">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md card-dark shadow-2xl shadow-black/60 p-8 animate-fade-in">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-[#5a5040] hover:text-[#d4c9b0] transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="text-2xl font-bold text-white text-center mb-6">Create Account</h2>
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#b8862f] to-[#8b5c28] flex items-center justify-center">
+            <UserPlus className="w-4 h-4 text-[#0a0a0f]" />
+          </div>
+          <h2 className="font-cinzel text-2xl font-bold text-[#d4af52] tracking-wide">Create Account</h2>
+        </div>
 
         {success ? (
           <div className="text-center space-y-4">
@@ -65,7 +70,7 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
             </div>
             <button
               onClick={onSwitchToLogin}
-              className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+              className="text-[#c9a44a] hover:text-[#d4af52] font-medium transition-colors"
             >
               Go to Login
             </button>
@@ -74,31 +79,31 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
           <>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
+                <label className="block text-sm font-medium text-[#8a7e6a] mb-1.5">Username</label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Choose a username"
                   required
-                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="input-dark w-full"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-[#8a7e6a] mb-1.5">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   required
-                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="input-dark w-full"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-[#8a7e6a] mb-1.5">Password</label>
                 <input
                   type="password"
                   value={password}
@@ -106,19 +111,19 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
                   placeholder="Create a password"
                   required
                   minLength={6}
-                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="input-dark w-full"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Confirm Password</label>
+                <label className="block text-sm font-medium text-[#8a7e6a] mb-1.5">Confirm Password</label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
                   required
-                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="input-dark w-full"
                 />
               </div>
 
@@ -131,18 +136,20 @@ export default function RegisterModal({ isOpen, onClose, onSwitchToLogin }: Regi
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-2.5 btn-gold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 Register
               </button>
             </form>
 
-            <p className="text-center text-sm text-slate-400 mt-5">
+            <div className="divider-gold mt-5 mb-4" />
+
+            <p className="text-center text-sm text-[#5a5040]">
               Already have an account?{' '}
               <button
                 onClick={onSwitchToLogin}
-                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                className="text-[#c9a44a] hover:text-[#d4af52] font-medium transition-colors"
               >
                 Login
               </button>

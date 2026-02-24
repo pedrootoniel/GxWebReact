@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('mu_token');
@@ -7,14 +7,22 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, {
     ...options,
     headers: { ...headers, ...(options?.headers as Record<string, string>) },
   });
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
-  return data;
+  if (!res.ok) {
+    let msg = 'Request failed';
+    try {
+      const data = await res.json();
+      msg = data.error || msg;
+    } catch { /* empty */ }
+    throw new Error(msg);
+  }
+
+  return res.json();
 }
 
 export interface MuCharacter {

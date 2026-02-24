@@ -19,8 +19,8 @@ const statusIcons: Record<string, typeof Clock> = {
 };
 
 const statusColors: Record<string, string> = {
-  open: 'text-amber-400 bg-amber-500/10',
-  in_progress: 'text-blue-400 bg-blue-500/10',
+  open: 'text-[#c9a44a] bg-[#b8862f]/10',
+  in_progress: 'text-[#d4af52] bg-[#b8862f]/15',
   resolved: 'text-emerald-400 bg-emerald-500/10',
 };
 
@@ -77,41 +77,41 @@ export default function SupportPage() {
     <Layout title="Support" subtitle="Need help? Contact our support team or browse existing tickets.">
       <div className="space-y-6">
         {!user ? (
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-8 text-center">
-            <MessageCircle className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-white mb-2">Login Required</h3>
-            <p className="text-sm text-slate-400">Please log in to create support tickets and view your existing ones.</p>
+          <div className="card-dark p-8 text-center">
+            <MessageCircle className="w-12 h-12 text-[#3d2e1a] mx-auto mb-3" />
+            <h3 className="text-lg font-cinzel font-bold text-[#d4af52] mb-2">Login Required</h3>
+            <p className="text-sm text-[#8a7e6a]">Please log in to create support tickets and view your existing ones.</p>
           </div>
         ) : (
           <>
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <Send className="w-5 h-5 text-blue-400" />
+            <div className="card-dark p-6">
+              <h2 className="text-lg font-cinzel font-bold text-[#d4af52] mb-4 flex items-center gap-2">
+                <Send className="w-5 h-5 text-[#c9a44a]" />
                 New Ticket
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Subject</label>
+                  <label className="block text-sm font-medium text-[#8a7e6a] mb-1.5">Subject</label>
                   <input
                     type="text"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder="Brief description of your issue"
                     required
-                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                    className="input-dark w-full"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Message</label>
+                  <label className="block text-sm font-medium text-[#8a7e6a] mb-1.5">Message</label>
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Describe your issue in detail..."
                     required
                     rows={5}
-                    className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm resize-none"
+                    className="input-dark w-full resize-none"
                   />
                 </div>
 
@@ -124,7 +124,7 @@ export default function SupportPage() {
                 <button
                   type="submit"
                   disabled={sending}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+                  className="flex items-center gap-2 btn-gold px-5 py-2.5 text-sm rounded-lg disabled:opacity-50"
                 >
                   {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   Submit Ticket
@@ -133,21 +133,21 @@ export default function SupportPage() {
             </div>
 
             {tickets.length > 0 && (
-              <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-                <h2 className="text-lg font-bold text-white mb-4">Your Tickets</h2>
+              <div className="card-dark p-6">
+                <h2 className="text-lg font-cinzel font-bold text-[#d4af52] mb-4">Your Tickets</h2>
                 <div className="space-y-3">
                   {tickets.map((ticket) => {
                     const StatusIcon = statusIcons[ticket.status] || Clock;
                     return (
                       <div
                         key={ticket.id}
-                        className="bg-slate-900/50 border border-slate-700/30 rounded-lg p-4"
+                        className="bg-[#0f0d0a]/50 border border-[#8b5c28]/10 rounded-lg p-4"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-semibold text-white">{ticket.subject}</h4>
-                            <p className="text-xs text-slate-400 mt-1 line-clamp-2">{ticket.message}</p>
-                            <p className="text-[10px] text-slate-500 mt-2">
+                            <h4 className="text-sm font-semibold text-[#d4c9b0]">{ticket.subject}</h4>
+                            <p className="text-xs text-[#5a5040] mt-1 line-clamp-2">{ticket.message}</p>
+                            <p className="text-[10px] text-[#3d2e1a] mt-2">
                               {new Date(ticket.created_at).toLocaleDateString('en-US', {
                                 year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                               })}

@@ -11,11 +11,11 @@ interface NewsCardProps {
 }
 
 const categoryColors: Record<string, string> = {
-  featured: 'bg-blue-600 text-white',
-  news: 'bg-blue-500 text-white',
-  event: 'bg-emerald-500 text-white',
-  patch_note: 'bg-red-500 text-white',
-  announcement: 'bg-amber-500 text-white',
+  featured: 'bg-gradient-to-r from-[#b8862f] to-[#c9a44a] text-[#0a0a0f]',
+  news: 'bg-[#8b5c28]/30 text-[#c9a44a]',
+  event: 'bg-emerald-500/15 text-emerald-400',
+  patch_note: 'bg-red-500/15 text-red-400',
+  announcement: 'bg-[#b8862f]/20 text-[#d4af52]',
 };
 
 const categoryLabels: Record<string, string> = {
@@ -30,9 +30,7 @@ export default function NewsCard({ title, excerpt, category, image_url, featured
   return (
     <div
       onClick={onClick}
-      className={`group bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden hover:border-slate-600/50 transition-all cursor-pointer ${
-        featured ? '' : ''
-      }`}
+      className="group card-dark overflow-hidden hover:border-[#8b5c28]/40 transition-all cursor-pointer"
     >
       <div className={`relative overflow-hidden ${featured ? 'h-64 sm:h-80' : 'h-44'}`}>
         <img
@@ -40,18 +38,18 @@ export default function NewsCard({ title, excerpt, category, image_url, featured
           alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f]/90 via-[#0a0a0f]/30 to-transparent" />
       </div>
 
       <div className="p-4">
         <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded ${categoryColors[category] || categoryColors.news}`}>
           {categoryLabels[category] || category}
         </span>
-        <h3 className={`font-bold text-white mt-2.5 mb-1.5 group-hover:text-blue-400 transition-colors ${featured ? 'text-xl' : 'text-base'}`}>
+        <h3 className={`font-semibold text-[#d4c9b0] mt-2.5 mb-1.5 group-hover:text-[#c9a44a] transition-colors ${featured ? 'text-xl' : 'text-base'}`}>
           {title}
         </h3>
-        <p className="text-sm text-slate-400 line-clamp-2">{excerpt}</p>
-        <span className="inline-flex items-center gap-1 text-sm text-blue-400 mt-3 group-hover:gap-2 transition-all">
+        <p className="text-sm text-[#5a5040] line-clamp-2">{excerpt}</p>
+        <span className="inline-flex items-center gap-1 text-sm text-[#c9a44a] mt-3 group-hover:gap-2 transition-all">
           Read more <ArrowRight className="w-3.5 h-3.5" />
         </span>
       </div>

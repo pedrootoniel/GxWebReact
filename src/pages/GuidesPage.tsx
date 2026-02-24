@@ -42,7 +42,7 @@ export default function GuidesPage() {
           <div
             key={guide.id}
             onClick={() => setSelected(guide)}
-            className="group bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden hover:border-slate-600/50 transition-all cursor-pointer"
+            className="group card-dark overflow-hidden hover:border-[#8b5c28]/40 transition-all cursor-pointer"
           >
             <div className="relative h-40 overflow-hidden">
               <img
@@ -50,18 +50,18 @@ export default function GuidesPage() {
                 alt={guide.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f]/80 to-transparent" />
             </div>
             <div className="p-4">
               <div className="flex items-center gap-2 mb-2">
-                <BookOpen className="w-3.5 h-3.5 text-blue-400" />
-                <span className="text-xs font-medium text-blue-400">
+                <BookOpen className="w-3.5 h-3.5 text-[#c9a44a]" />
+                <span className="text-xs font-medium text-[#c9a44a]">
                   {categoryLabels[guide.category] || guide.category}
                 </span>
               </div>
-              <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors">{guide.title}</h3>
-              <p className="text-sm text-slate-400 mt-1 line-clamp-2">{guide.content}</p>
-              <span className="inline-flex items-center gap-1 text-sm text-blue-400 mt-3 group-hover:gap-2 transition-all">
+              <h3 className="font-bold text-[#d4c9b0] group-hover:text-[#c9a44a] transition-colors">{guide.title}</h3>
+              <p className="text-sm text-[#5a5040] mt-1 line-clamp-2">{guide.content}</p>
+              <span className="inline-flex items-center gap-1 text-sm text-[#c9a44a] mt-3 group-hover:gap-2 transition-all">
                 Read guide <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -71,24 +71,24 @@ export default function GuidesPage() {
 
       {selected && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelected(null)} />
-          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSelected(null)} />
+          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto card-dark shadow-2xl shadow-black/60">
             {selected.image_url && (
               <img
                 src={selected.image_url}
                 alt={selected.title}
-                className="w-full h-48 object-cover rounded-t-2xl"
+                className="w-full h-48 object-cover rounded-t-xl"
               />
             )}
             <div className="p-6">
-              <span className="inline-block text-xs font-medium text-blue-400 mb-2">
+              <span className="inline-block text-xs font-medium text-[#c9a44a] mb-2">
                 {categoryLabels[selected.category] || selected.category}
               </span>
-              <h2 className="text-2xl font-bold text-white mb-4">{selected.title}</h2>
-              <div className="text-slate-300 leading-relaxed whitespace-pre-line">{selected.content}</div>
+              <h2 className="text-2xl font-cinzel font-bold text-[#d4af52] mb-4">{selected.title}</h2>
+              <div className="text-[#8a7e6a] leading-relaxed whitespace-pre-line text-sm">{selected.content}</div>
               <button
                 onClick={() => setSelected(null)}
-                className="mt-6 px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-lg transition-colors"
+                className="mt-6 px-5 py-2 text-sm font-medium text-[#d4c9b0] border border-[#8b5c28]/25 rounded-lg hover:bg-[#8b5c28]/10 transition-colors"
               >
                 Close
               </button>

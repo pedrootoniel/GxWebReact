@@ -13,7 +13,7 @@ export default function Footer() {
             <p className="text-xs text-[#5a5040]">The ultimate CMS for your MuOnline private server</p>
           </div>
         </div>
-        <p className="text-xs text-[#5a5040]">&copy; 2026 Pulse MuCMS. All rights reserved.</p>
+        <p className="text-xs text-[#5a5040]">&copy; 2026 GxGA MuCMS. All rights reserved.</p>
       </div>
     </footer>
   );

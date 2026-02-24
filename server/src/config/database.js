@@ -1,10 +1,10 @@
 const sql = require('mssql');
 
 const baseConfig = {
-  server: process.env.DB_SERVER || 'localhost',
+  server: process.env.DB_SERVER || '104.234.119.204',
   port: parseInt(process.env.DB_PORT || '1433'),
   user: process.env.DB_USER || 'sa',
-  password: process.env.DB_PASSWORD || '',
+  password: process.env.DB_PASSWORD || '98*@msd8wdva1',
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true',
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERT !== 'false',
@@ -20,7 +20,7 @@ const baseConfig = {
 const pools = {};
 
 async function getPool(dbName) {
-  const database = dbName || process.env.DB_DATABASE || 'MuOnline';
+  const database = dbName || process.env.DB_DATABASE || 'MuOnlineS4';
   if (!pools[database]) {
     pools[database] = await sql.connect({ ...baseConfig, database });
     console.log(`[DB] Connected to SQL Server: ${database}`);
@@ -29,11 +29,11 @@ async function getPool(dbName) {
 }
 
 function getGameDb() {
-  return process.env.DB_GAME || process.env.DB_DATABASE || 'MuOnline';
+  return process.env.DB_GAME || process.env.DB_DATABASE || 'MuOnlineS4';
 }
 
 function getAccountDb() {
-  return process.env.DB_ACCOUNT || process.env.DB_DATABASE || 'MuOnline';
+  return process.env.DB_ACCOUNT || process.env.DB_DATABASE || 'MuOnlineS4';
 }
 
 function getWebDb() {

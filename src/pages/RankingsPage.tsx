@@ -1,24 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Search, Shield, Users, Swords } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { rankingsApi, type MuCharacter, type MuGuild } from '../services/api';
+import { rankingsApi, type MuCharacter, type MuGuild, type MuGuildMember } from '../services/api';
 import Layout from '../components/layout/Layout';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const useMuBackend = !!API_URL;
-
-interface SupabaseCharacter {
-  id: string;
-  name: string;
-  class: string;
-  level: number;
-  master_level: number;
-  resets: number;
-  grand_resets: number;
-  is_online: boolean;
-  vip_badge: string;
-  image_url: string;
-}
 
 const classes = [
   'All Classes',
@@ -36,53 +22,32 @@ const classes = [
 type Tab = 'players' | 'guilds';
 
 export default function RankingsPage() {
-  const [characters, setCharacters] = useState<(MuCharacter | SupabaseCharacter)[]>([]);
+  const [characters, setCharacters] = useState<MuCharacter[]>([]);
   const [guilds, setGuilds] = useState<MuGuild[]>([]);
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('All Classes');
   const [tab, setTab] = useState<Tab>('players');
   const [selectedChar, setSelectedChar] = useState<MuCharacter | null>(null);
-  const [selectedGuild, setSelectedGuild] = useState<{ name: string; members: MuCharacter[] } | null>(null);
+  const [selectedGuild, setSelectedGuild] = useState<{ name: string; members: MuGuildMember[] } | null>(null);
   const [page, setPage] = useState(1);
 
   const loadPlayers = useCallback(async () => {
-    if (useMuBackend) {
-      try {
-        const data = await rankingsApi.getPlayers({ page, limit: 20, className: classFilter, search });
-        setCharacters(data.characters);
-      } catch {
-        setCharacters([]);
-      }
-    } else {
-      let query = supabase
-        .from('characters')
-        .select('*')
-        .order('resets', { ascending: false })
-        .order('level', { ascending: false })
-        .limit(50);
-
-      if (classFilter !== 'All Classes') query = query.eq('class', classFilter);
-      if (search.trim()) query = query.ilike('name', `%${search.trim()}%`);
-
-      const { data } = await query;
-      if (data) setCharacters(data);
+    if (!useMuBackend) return;
+    try {
+      const data = await rankingsApi.getPlayers({ page, limit: 20, className: classFilter, search });
+      setCharacters(data.characters);
+    } catch {
+      setCharacters([]);
     }
   }, [page, classFilter, search]);
 
   const loadGuilds = useCallback(async () => {
-    if (useMuBackend) {
-      try {
-        const data = await rankingsApi.getGuilds({ page, limit: 20, search });
-        setGuilds(data.guilds);
-      } catch {
-        setGuilds([]);
-      }
-    } else {
-      setGuilds([
-        { name: 'DarkLegion', score: 5000, masterName: 'Canute', masterLevel: 400, masterResets: 15, memberCount: 12 },
-        { name: 'Phoenix', score: 4200, masterName: 'pulse2', masterLevel: 390, masterResets: 12, memberCount: 8 },
-        { name: 'Legends', score: 3800, masterName: 'Chicken', masterLevel: 385, masterResets: 10, memberCount: 6 },
-      ]);
+    if (!useMuBackend) return;
+    try {
+      const data = await rankingsApi.getGuilds({ page, limit: 20, search });
+      setGuilds(data.guilds);
+    } catch {
+      setGuilds([]);
     }
   }, [page, search]);
 
@@ -106,14 +71,6 @@ export default function RankingsPage() {
       setSelectedGuild({ name: guildName, members: data.members });
     } catch { /* empty */ }
   };
-
-  const getName = (c: MuCharacter | SupabaseCharacter) => 'name' in c ? c.name : '';
-  const getClass = (c: MuCharacter | SupabaseCharacter) => 'class' in c ? c.class : '';
-  const getLevel = (c: MuCharacter | SupabaseCharacter) => 'level' in c ? c.level : 0;
-  const getMl = (c: MuCharacter | SupabaseCharacter) => ('masterLevel' in c ? c.masterLevel : ('master_level' in c ? (c as SupabaseCharacter).master_level : 0));
-  const getResets = (c: MuCharacter | SupabaseCharacter) => 'resets' in c ? c.resets : 0;
-  const getGr = (c: MuCharacter | SupabaseCharacter) => ('grandResets' in c ? c.grandResets : ('grand_resets' in c ? (c as SupabaseCharacter).grand_resets : 0));
-  const getOnline = (c: MuCharacter | SupabaseCharacter) => ('isOnline' in c ? c.isOnline : ('is_online' in c ? (c as SupabaseCharacter).is_online : false));
 
   return (
     <Layout title="Rankings" subtitle="Check the top players in our MuOnline server.">
@@ -166,9 +123,9 @@ export default function RankingsPage() {
           <div className="space-y-3">
             {characters.map((char, index) => (
               <div
-                key={getName(char) + index}
-                onClick={() => handleCharClick(getName(char))}
-                className={`card-dark p-4 flex items-center gap-4 hover:border-[#8b5c28]/30 transition-all ${useMuBackend ? 'cursor-pointer' : ''}`}
+                key={char.name + index}
+                onClick={() => handleCharClick(char.name)}
+                className="card-dark p-4 flex items-center gap-4 hover:border-[#8b5c28]/30 transition-all cursor-pointer"
               >
                 <span className={`text-lg font-bold w-8 text-center font-cinzel ${
                   index === 0 ? 'text-[#c9a44a]' : index === 1 ? 'text-[#d4c9b0]' : index === 2 ? 'text-[#8b5c28]' : 'text-[#5a5040]'
@@ -177,25 +134,24 @@ export default function RankingsPage() {
                 </span>
 
                 <div className="w-12 h-12 rounded-lg bg-[#14100c] border border-[#8b5c28]/10 overflow-hidden shrink-0 flex items-center justify-center">
-                  <span className="text-lg font-bold text-[#5a5040]">{getName(char)?.[0]}</span>
+                  <span className="text-lg font-bold text-[#5a5040]">{char.name?.[0]}</span>
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[#d4c9b0] text-sm">{getName(char)}</span>
+                    <span className="font-semibold text-[#d4c9b0] text-sm">{char.name}</span>
                   </div>
-                  <p className="text-xs text-[#5a5040]">{getClass(char)}</p>
+                  <p className="text-xs text-[#5a5040]">{char.class}</p>
                 </div>
 
                 <div className="hidden sm:flex items-center gap-6 text-sm text-[#8a7e6a]">
-                  <span className="text-[#d4c9b0]">Lv: {getLevel(char)}</span>
-                  <span>ML: {getMl(char)}</span>
-                  <span>Resets: <strong className="text-[#d4c9b0]">{getResets(char)}</strong></span>
-                  <span>GR: <strong className="text-[#d4c9b0]">{getGr(char)}</strong></span>
+                  <span className="text-[#d4c9b0]">Lv: {char.level}</span>
+                  <span>Resets: <strong className="text-[#d4c9b0]">{char.resets}</strong></span>
+                  <span>GR: <strong className="text-[#d4c9b0]">{char.grandResets}</strong></span>
                 </div>
 
-                <span className={getOnline(char) ? 'badge-online' : 'badge-offline'}>
-                  {getOnline(char) ? 'ONLINE' : 'OFFLINE'}
+                <span className={char.isOnline ? 'badge-online' : 'badge-offline'}>
+                  {char.isOnline ? 'ONLINE' : 'OFFLINE'}
                 </span>
               </div>
             ))}
@@ -204,7 +160,7 @@ export default function RankingsPage() {
               <div className="text-center py-12 text-[#5a5040]">No characters found.</div>
             )}
 
-            {useMuBackend && characters.length >= 20 && (
+            {characters.length >= 20 && (
               <div className="flex justify-center gap-3 pt-4">
                 <button
                   onClick={() => setPage(Math.max(1, page - 1))}
@@ -231,7 +187,7 @@ export default function RankingsPage() {
               <div
                 key={guild.name}
                 onClick={() => handleGuildClick(guild.name)}
-                className={`card-dark p-4 flex items-center gap-4 hover:border-[#8b5c28]/30 transition-all ${useMuBackend ? 'cursor-pointer' : ''}`}
+                className="card-dark p-4 flex items-center gap-4 hover:border-[#8b5c28]/30 transition-all cursor-pointer"
               >
                 <span className={`text-lg font-bold w-8 text-center font-cinzel ${
                   index === 0 ? 'text-[#c9a44a]' : index === 1 ? 'text-[#d4c9b0]' : index === 2 ? 'text-[#8b5c28]' : 'text-[#5a5040]'
@@ -245,7 +201,7 @@ export default function RankingsPage() {
 
                 <div className="flex-1 min-w-0">
                   <span className="font-semibold text-[#d4c9b0] text-sm">{guild.name}</span>
-                  <p className="text-xs text-[#5a5040]">Master: {guild.masterName}</p>
+                  <p className="text-xs text-[#5a5040]">Master: {guild.master}</p>
                 </div>
 
                 <div className="hidden sm:flex items-center gap-6 text-sm text-[#8a7e6a]">
@@ -273,8 +229,8 @@ export default function RankingsPage() {
                   <p className="text-[#d4c9b0] font-semibold">{selectedChar.class}</p>
                 </div>
                 <div className="bg-[#0f0d0a]/50 rounded-lg p-3 border border-[#8b5c28]/10">
-                  <p className="text-xs text-[#5a5040]">Level / ML</p>
-                  <p className="text-[#d4c9b0] font-semibold">{selectedChar.level} / {selectedChar.masterLevel}</p>
+                  <p className="text-xs text-[#5a5040]">Level</p>
+                  <p className="text-[#d4c9b0] font-semibold">{selectedChar.level}</p>
                 </div>
                 <div className="bg-[#0f0d0a]/50 rounded-lg p-3 border border-[#8b5c28]/10">
                   <p className="text-xs text-[#5a5040]">Resets / GR</p>
@@ -328,12 +284,18 @@ export default function RankingsPage() {
                 {selectedGuild.members.map((m) => (
                   <div key={m.name} className="bg-[#0f0d0a]/50 rounded-lg p-3 border border-[#8b5c28]/10 flex items-center justify-between">
                     <div>
-                      <span className="text-sm font-semibold text-[#d4c9b0]">{m.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-[#d4c9b0]">{m.name}</span>
+                        {m.role !== 'Member' && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-[#8b5c28]/20 text-[#c9a44a]">{m.role}</span>
+                        )}
+                      </div>
                       <p className="text-xs text-[#5a5040]">{m.class}</p>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-[#8a7e6a]">
                       <span>Lv: {m.level}</span>
                       <span>R: {m.resets}</span>
+                      <span>GR: {m.grandResets}</span>
                       <span className={m.isOnline ? 'text-emerald-400' : 'text-red-400'}>
                         {m.isOnline ? 'ON' : 'OFF'}
                       </span>

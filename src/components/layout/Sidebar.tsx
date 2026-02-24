@@ -86,11 +86,11 @@ export default function Sidebar() {
             </div>
             <div className="flex justify-between text-[#8a7e6a]">
               <span>WCoins:</span>
-              <span className="text-[#d4af52] font-semibold">{profile.wcoins}</span>
+              <span className="text-[#d4af52] font-semibold">{profile.credits2}</span>
             </div>
             <div className="flex justify-between text-[#8a7e6a]">
               <span>Goblin Points:</span>
-              <span className="text-[#d4af52] font-semibold">{profile.goblin_points}</span>
+              <span className="text-[#d4af52] font-semibold">{profile.credits3}</span>
             </div>
             <div className="divider-gold my-2" />
             <div className="flex justify-between text-[#8a7e6a]">

@@ -1,16 +1,16 @@
 const CharacterModel = require('../models/character');
 const GuildModel = require('../models/guild');
+const AccountModel = require('../models/account');
 
 const RankingController = {
   async getPlayerRankings(req, res, next) {
     try {
-      const { page = 1, limit = 20, className, search, serverCode } = req.query;
+      const { page = 1, limit = 20, className, search } = req.query;
       const data = await CharacterModel.getRankings({
         page: parseInt(page),
         limit: Math.min(parseInt(limit) || 20, 100),
         className,
         search,
-        serverCode: serverCode ? parseInt(serverCode) : undefined,
       });
       res.json(data);
     } catch (err) {
@@ -76,9 +76,17 @@ const RankingController = {
 
   async getOnlineCount(req, res, next) {
     try {
-      const AccountModel = require('../models/account');
       const count = await AccountModel.getOnlineCount();
       res.json({ online: count });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async getStats(req, res, next) {
+    try {
+      const stats = await AccountModel.getStats();
+      res.json(stats);
     } catch (err) {
       next(err);
     }

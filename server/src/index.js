@@ -9,7 +9,7 @@ const authRoutes = require('./routes/auth');
 const rankingRoutes = require('./routes/rankings');
 const accountRoutes = require('./routes/account');
 const { errorHandler } = require('./middlewares/errorHandler');
-const { getPool, closePool } = require('./config/database');
+const { getPool, closeAllPools } = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -63,12 +63,12 @@ async function start() {
 }
 
 process.on('SIGINT', async () => {
-  await closePool();
+  await closeAllPools();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  await closePool();
+  await closeAllPools();
   process.exit(0);
 });
 

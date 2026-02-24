@@ -11,14 +11,12 @@ export interface Profile {
   username: string;
   email: string;
   server: string;
-  vip_type: string;
-  vip_expires: string | null;
+  vip_type: number;
+  vip_time: string | null;
   credits: number;
-  wcoins: number;
-  goblin_points: number;
+  credits2: number;
+  credits3: number;
   is_admin: boolean;
-  created_at: string;
-  last_login: string;
   isOnline?: boolean;
   characters?: MuCharacter[];
 }
@@ -49,7 +47,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select('*')
       .eq('id', userId)
       .maybeSingle();
-    setProfile(data);
+    if (data) {
+      setProfile({
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        server: data.server || '',
+        vip_type: 0,
+        vip_time: null,
+        credits: 0,
+        credits2: 0,
+        credits3: 0,
+        is_admin: data.is_admin || false,
+      });
+    }
   }, []);
 
   const fetchMuProfile = useCallback(async () => {
@@ -59,15 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: data.username,
         username: data.username,
         email: data.email,
-        server: data.serverName || 'x9999',
-        vip_type: 'none',
-        vip_expires: null,
-        credits: 0,
-        wcoins: 0,
-        goblin_points: 0,
+        server: data.serverName || '',
+        vip_type: data.vipType || 0,
+        vip_time: data.vipTime || null,
+        credits: data.credits || 0,
+        credits2: data.credits2 || 0,
+        credits3: data.credits3 || 0,
         is_admin: data.role === 'admin',
-        created_at: new Date().toISOString(),
-        last_login: new Date().toISOString(),
         isOnline: data.isOnline,
         characters: data.characters,
       });

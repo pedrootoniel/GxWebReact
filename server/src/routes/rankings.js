@@ -10,5 +10,6 @@ router.get('/top', RankingController.getTopPlayers);
 router.get('/character/:name', RankingController.getCharacterInfo);
 router.get('/castle-siege', RankingController.getCastleSiegeOwner);
 router.get('/online', RankingController.getOnlineCount);
+router.get('/stats', RankingController.getStats);
 
 module.exports = router;

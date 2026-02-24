@@ -1,4 +1,6 @@
 const AuthService = require('../services/authService');
+const AccountModel = require('../models/account');
+const CharacterModel = require('../models/character');
 
 const AuthController = {
   async login(req, res, next) {
@@ -11,6 +13,12 @@ const AuthController = {
       if (result.error) {
         return res.status(401).json({ error: result.error });
       }
+
+      const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || '0.0.0.0';
+      try {
+        await AccountModel.updateLastLogin(result.user.username, ip, 'BR');
+      } catch { /* empty */ }
+
       res.json(result);
     } catch (err) {
       next(err);
@@ -51,21 +59,30 @@ const AuthController = {
 
   async me(req, res, next) {
     try {
-      const AccountModel = require('../models/account');
-      const CharacterModel = require('../models/character');
-
-      const [info, characters, isOnline] = await Promise.all([
-        AccountModel.getAccountInfo(req.user.username),
+      const [account, characters, isOnline, credits, vipInfo] = await Promise.all([
+        AccountModel.findByUsername(req.user.username),
         CharacterModel.getCharactersByAccount(req.user.username),
         AccountModel.isOnline(req.user.username),
+        AccountModel.getCredits(req.user.username),
+        AccountModel.getVipInfo(req.user.username),
       ]);
+
+      let connectionInfo = null;
+      try {
+        connectionInfo = await AccountModel.getConnectionStatus(req.user.username);
+      } catch { /* empty */ }
 
       res.json({
         username: req.user.username,
         role: req.user.role,
-        email: info?.email?.trim() || '',
+        email: account?.mail_addr?.trim() || '',
         isOnline,
-        serverName: info?.ServerName?.trim() || '',
+        serverName: connectionInfo?.ServerName?.trim() || '',
+        credits: credits.credits || 0,
+        credits2: credits.credits2 || 0,
+        credits3: credits.credits3 || 0,
+        vipType: vipInfo?.viptype || 0,
+        vipTime: vipInfo?.viptime || null,
         characters,
       });
     } catch (err) {

@@ -30,7 +30,6 @@ export interface MuCharacter {
   class: string;
   classCode: number;
   level: number;
-  masterLevel: number;
   resets: number;
   grandResets: number;
   isOnline: boolean;
@@ -40,17 +39,34 @@ export interface MuCharacter {
   energy?: number;
   leadership?: number;
   money?: number;
+  levelUpPoint?: number;
+  pkLevel?: number;
+  pkCount?: number;
+  mapNumber?: number;
+  mapPosX?: number;
+  mapPosY?: number;
   guildName?: string;
   guildStatus?: number;
+  role?: string;
 }
 
 export interface MuGuild {
   name: string;
   score: number;
-  masterName: string;
+  master: string;
   masterLevel: number;
   masterResets: number;
   memberCount: number;
+}
+
+export interface MuGuildMember {
+  name: string;
+  role: string;
+  class: string;
+  level: number;
+  resets: number;
+  grandResets: number;
+  isOnline: boolean;
 }
 
 export interface MuUser {
@@ -59,7 +75,19 @@ export interface MuUser {
   role: string;
   isOnline: boolean;
   serverName: string;
+  credits: number;
+  credits2: number;
+  credits3: number;
+  vipType: number;
+  vipTime: string | null;
   characters: MuCharacter[];
+}
+
+export interface ServerStats {
+  totalAccounts: number;
+  totalCharacters: number;
+  totalGuilds: number;
+  onlineCount: number;
 }
 
 export const authApi = {
@@ -103,7 +131,7 @@ export const rankingsApi = {
   },
 
   getGuildMembers: (guildName: string) =>
-    request<{ members: MuCharacter[] }>(`/api/rankings/guilds/${encodeURIComponent(guildName)}/members`),
+    request<{ members: MuGuildMember[] }>(`/api/rankings/guilds/${encodeURIComponent(guildName)}/members`),
 
   getTop: (limit = 5) =>
     request<{ players: MuCharacter[] }>(`/api/rankings/top?limit=${limit}`),
@@ -116,6 +144,9 @@ export const rankingsApi = {
 
   getOnline: () =>
     request<{ online: number }>('/api/rankings/online'),
+
+  getStats: () =>
+    request<ServerStats>('/api/rankings/stats'),
 };
 
 export const accountApi = {
@@ -124,6 +155,24 @@ export const accountApi = {
 
   resetCharacter: (characterName: string) =>
     request<{ message: string; newResets: number }>('/api/account/reset', {
+      method: 'POST',
+      body: JSON.stringify({ characterName }),
+    }),
+
+  addStats: (characterName: string, str: number, agi: number, vit: number, ene: number, cmd?: number) =>
+    request<{ message: string }>('/api/account/add-stats', {
+      method: 'POST',
+      body: JSON.stringify({ characterName, str, agi, vit, ene, cmd }),
+    }),
+
+  clearPk: (characterName: string) =>
+    request<{ message: string }>('/api/account/clear-pk', {
+      method: 'POST',
+      body: JSON.stringify({ characterName }),
+    }),
+
+  unstick: (characterName: string) =>
+    request<{ message: string }>('/api/account/unstick', {
       method: 'POST',
       body: JSON.stringify({ characterName }),
     }),

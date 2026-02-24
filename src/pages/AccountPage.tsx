@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  User, Mail, Calendar, Clock, Crown, Server,
+  User, Mail, Crown, Server,
   CreditCard, Coins, CircleDot, LogOut, KeyRound,
-  ArrowLeftRight, Star, Users, HeadphonesIcon, ChevronDown,
-  RotateCcw, Loader2,
+  RotateCcw, Loader2, Skull, MapPin,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { accountApi, authApi, type MuCharacter } from '../services/api';
 import Layout from '../components/layout/Layout';
@@ -14,34 +12,24 @@ import Layout from '../components/layout/Layout';
 const API_URL = import.meta.env.VITE_API_URL || '';
 const useMuBackend = !!API_URL;
 
-interface SupabaseCharacter {
-  id: string;
-  name: string;
-  class: string;
-  level: number;
-  master_level: number;
-  resets: number;
-  grand_resets: number;
-  is_online: boolean;
-}
-
-const services = [
-  { icon: Coins, title: 'Currency Exchange', desc: 'Exchange credits to WCoins or other currencies' },
-  { icon: Star, title: 'VIP', desc: 'Gain XP boosts, enhanced stats, and exclusive in-game rewards.' },
-  { icon: Users, title: 'Referral', desc: 'Invite friends and earn rewards' },
-  { icon: HeadphonesIcon, title: 'Support', desc: 'Contact support for help or inquiries.' },
-];
+const VIP_NAMES: Record<number, string> = {
+  0: 'None',
+  1: 'Bronze',
+  2: 'Silver',
+  3: 'Gold',
+  4: 'Platinum',
+};
 
 export default function AccountPage() {
-  const { user, profile, signOut, loading, muMode, refreshProfile } = useAuth();
+  const { user, profile, signOut, loading, refreshProfile } = useAuth();
   const navigate = useNavigate();
-  const [characters, setCharacters] = useState<(MuCharacter | SupabaseCharacter)[]>([]);
+  const [characters, setCharacters] = useState<MuCharacter[]>([]);
   const [changingPassword, setChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordMsg, setPasswordMsg] = useState('');
-  const [resetting, setResetting] = useState<string | null>(null);
-  const [resetMsg, setResetMsg] = useState('');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [actionMsg, setActionMsg] = useState('');
 
   useEffect(() => {
     if (!loading && !user) navigate('/');
@@ -49,74 +37,58 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (!user || !profile) return;
-    const load = async () => {
-      if (useMuBackend) {
-        if (profile.characters) {
-          setCharacters(profile.characters);
-        } else {
-          try {
-            const data = await accountApi.getCharacters();
-            setCharacters(data.characters);
-          } catch { /* empty */ }
-        }
+    if (useMuBackend) {
+      if (profile.characters) {
+        setCharacters(profile.characters);
       } else {
-        const { data } = await supabase
-          .from('characters')
-          .select('*')
-          .eq('owner_id', user.id);
-        if (data) setCharacters(data);
+        accountApi.getCharacters().then(d => setCharacters(d.characters)).catch(() => {});
       }
-    };
-    load();
+    }
   }, [user, profile]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordMsg('');
-
-    if (newPassword.length < 6) {
-      setPasswordMsg('Password must be at least 6 characters');
+    if (newPassword.length < 4) {
+      setPasswordMsg('Password must be at least 4 characters');
       return;
     }
-
-    if (useMuBackend) {
-      try {
-        const result = await authApi.changePassword(currentPassword, newPassword);
-        setPasswordMsg(result.message);
-        setCurrentPassword('');
-        setNewPassword('');
-        setChangingPassword(false);
-      } catch (err) {
-        setPasswordMsg(err instanceof Error ? err.message : 'Failed to update password');
-      }
-    } else {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) {
-        setPasswordMsg(error.message);
-      } else {
-        setPasswordMsg('Password updated successfully!');
-        setNewPassword('');
-        setChangingPassword(false);
-      }
+    try {
+      const result = await authApi.changePassword(currentPassword, newPassword);
+      setPasswordMsg(result.message);
+      setCurrentPassword('');
+      setNewPassword('');
+      setChangingPassword(false);
+    } catch (err) {
+      setPasswordMsg(err instanceof Error ? err.message : 'Failed to update password');
     }
   };
 
-  const handleReset = async (charName: string) => {
-    if (!useMuBackend) return;
-    setResetting(charName);
-    setResetMsg('');
+  const doAction = async (charName: string, action: string) => {
+    setActionLoading(`${action}-${charName}`);
+    setActionMsg('');
     try {
-      const result = await accountApi.resetCharacter(charName);
-      setResetMsg(result.message);
+      let result: { message: string };
+      if (action === 'reset') {
+        const r = await accountApi.resetCharacter(charName);
+        result = r;
+      } else if (action === 'clearPk') {
+        result = await accountApi.clearPk(charName);
+      } else if (action === 'unstick') {
+        result = await accountApi.unstick(charName);
+      } else {
+        return;
+      }
+      setActionMsg(result.message);
       await refreshProfile();
       try {
         const data = await accountApi.getCharacters();
         setCharacters(data.characters);
       } catch { /* empty */ }
     } catch (err) {
-      setResetMsg(err instanceof Error ? err.message : 'Reset failed');
+      setActionMsg(err instanceof Error ? err.message : 'Action failed');
     }
-    setResetting(null);
+    setActionLoading(null);
   };
 
   const handleSignOut = async () => {
@@ -133,14 +105,6 @@ export default function AccountPage() {
       </Layout>
     );
   }
-
-  const getCharName = (c: MuCharacter | SupabaseCharacter) => c.name;
-  const getCharClass = (c: MuCharacter | SupabaseCharacter) => c.class;
-  const getCharLevel = (c: MuCharacter | SupabaseCharacter) => c.level;
-  const getCharMl = (c: MuCharacter | SupabaseCharacter) => ('masterLevel' in c ? c.masterLevel : (c as SupabaseCharacter).master_level);
-  const getCharResets = (c: MuCharacter | SupabaseCharacter) => c.resets;
-  const getCharGr = (c: MuCharacter | SupabaseCharacter) => ('grandResets' in c ? c.grandResets : (c as SupabaseCharacter).grand_resets);
-  const getCharOnline = (c: MuCharacter | SupabaseCharacter) => ('isOnline' in c ? c.isOnline : (c as SupabaseCharacter).is_online);
 
   return (
     <Layout title="Account Panel" subtitle="Manage your account and characters.">
@@ -162,39 +126,28 @@ export default function AccountPage() {
             </div>
 
             <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-[#8a7e6a]">
-                <Server className="w-3.5 h-3.5 text-[#5a5040]" />
-                Current Server: <strong className="text-[#d4c9b0]">{profile.server}</strong>
-              </div>
+              {profile.server && (
+                <div className="flex items-center gap-2 text-[#8a7e6a]">
+                  <Server className="w-3.5 h-3.5 text-[#5a5040]" />
+                  Server: <strong className="text-[#d4c9b0]">{profile.server}</strong>
+                </div>
+              )}
               <div className="flex items-center gap-2 text-[#8a7e6a]">
                 <Mail className="w-3.5 h-3.5 text-[#5a5040]" />
-                Email: <strong className="text-[#d4c9b0]">{profile.email}</strong>
-              </div>
-              <div className="flex items-center gap-2 text-[#8a7e6a]">
-                <Calendar className="w-3.5 h-3.5 text-[#5a5040]" />
-                Created: <strong className="text-[#d4c9b0]">{new Date(profile.created_at).toISOString().split('T')[0]}</strong>
-              </div>
-              <div className="flex items-center gap-2 text-[#8a7e6a]">
-                <Clock className="w-3.5 h-3.5 text-[#5a5040]" />
-                Last Login: <strong className="text-[#d4c9b0]">{new Date(profile.last_login).toLocaleString()}</strong>
+                Email: <strong className="text-[#d4c9b0]">{profile.email || 'N/A'}</strong>
               </div>
               <div className="flex items-center gap-2 text-[#8a7e6a]">
                 <Crown className="w-3.5 h-3.5 text-[#5a5040]" />
-                VIP Type: <strong className="text-[#c9a44a] capitalize">{profile.vip_type}</strong>
+                VIP: <strong className="text-[#c9a44a]">{VIP_NAMES[profile.vip_type] || `VIP ${profile.vip_type}`}</strong>
               </div>
-              {profile.vip_expires && (
-                <div className="flex items-center gap-2 text-[#8a7e6a]">
-                  <Calendar className="w-3.5 h-3.5 text-[#5a5040]" />
-                  Expires: <strong className="text-[#d4c9b0]">{new Date(profile.vip_expires).toISOString().split('T')[0]}</strong>
+              {profile.vip_time && (
+                <div className="flex items-center gap-2 text-[#8a7e6a] pl-5">
+                  Expires: <strong className="text-[#d4c9b0]">{new Date(profile.vip_time).toLocaleDateString()}</strong>
                 </div>
               )}
             </div>
 
             <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[#8b5c28]/10">
-              <button className="px-3 py-1.5 text-xs font-medium text-[#c9a44a] border border-[#8b5c28]/25 rounded-lg hover:bg-[#8b5c28]/10 transition-colors">
-                <ArrowLeftRight className="w-3 h-3 inline mr-1" />
-                Switch Server
-              </button>
               <button
                 onClick={() => setChangingPassword(!changingPassword)}
                 className="px-3 py-1.5 text-xs font-medium text-[#d4af52] border border-[#8b5c28]/25 rounded-lg hover:bg-[#8b5c28]/10 transition-colors"
@@ -213,20 +166,18 @@ export default function AccountPage() {
 
             {changingPassword && (
               <form onSubmit={handlePasswordChange} className="mt-4 pt-4 border-t border-[#8b5c28]/10 space-y-3">
-                {muMode && (
-                  <input
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Current password"
-                    className="input-dark w-full"
-                  />
-                )}
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Current password"
+                  className="input-dark w-full"
+                />
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="New password (min 6 chars)"
+                  placeholder="New password (min 4 chars)"
                   className="input-dark w-full"
                 />
                 {passwordMsg && (
@@ -234,10 +185,7 @@ export default function AccountPage() {
                     {passwordMsg}
                   </p>
                 )}
-                <button
-                  type="submit"
-                  className="btn-gold px-4 py-2 text-sm rounded-lg"
-                >
+                <button type="submit" className="btn-gold px-4 py-2 text-sm rounded-lg">
                   Update Password
                 </button>
               </form>
@@ -265,7 +213,7 @@ export default function AccountPage() {
                 </div>
                 <div>
                   <p className="text-xs text-[#5a5040]">WCoins</p>
-                  <p className="text-lg font-bold text-[#d4c9b0]">{profile.wcoins}</p>
+                  <p className="text-lg font-bold text-[#d4c9b0]">{profile.credits2}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -274,81 +222,94 @@ export default function AccountPage() {
                 </div>
                 <div>
                   <p className="text-xs text-[#5a5040]">Goblin Points</p>
-                  <p className="text-lg font-bold text-[#d4c9b0]">{profile.goblin_points}</p>
+                  <p className="text-lg font-bold text-[#d4c9b0]">{profile.credits3}</p>
                 </div>
               </div>
             </div>
-            <button className="mt-4 w-full py-2 text-sm font-medium text-[#c9a44a] border border-[#8b5c28]/25 rounded-lg hover:bg-[#8b5c28]/10 transition-colors">
-              Get More
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <h2 className="font-cinzel text-xl font-bold text-[#d4af52] mb-4">Available Services</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {services.map((svc) => (
-              <div
-                key={svc.title}
-                className="card-dark p-4 hover:border-[#8b5c28]/30 transition-all"
-              >
-                <svc.icon className="w-6 h-6 text-[#c9a44a] mb-3" />
-                <h4 className="text-sm font-bold text-[#d4c9b0] mb-1">{svc.title}</h4>
-                <p className="text-xs text-[#5a5040] mb-3">{svc.desc}</p>
-                <button className="px-3 py-1.5 text-xs font-medium text-[#c9a44a] border border-[#8b5c28]/25 rounded-lg hover:bg-[#8b5c28]/10 transition-colors">
-                  Use Service
-                </button>
-              </div>
-            ))}
           </div>
         </div>
 
         {characters.length > 0 && (
           <div>
             <h2 className="font-cinzel text-xl font-bold text-[#d4af52] mb-4">Character Info</h2>
-            {resetMsg && (
+            {actionMsg && (
               <div className={`mb-3 text-sm px-4 py-2 rounded-lg ${
-                resetMsg.toLowerCase().includes('success') ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-red-400 bg-red-500/10 border border-red-500/20'
+                actionMsg.toLowerCase().includes('success') ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-red-400 bg-red-500/10 border border-red-500/20'
               }`}>
-                {resetMsg}
+                {actionMsg}
               </div>
             )}
             <div className="space-y-3">
               {characters.map((char) => (
                 <div
-                  key={getCharName(char)}
-                  className="card-dark p-4 flex items-center gap-4"
+                  key={char.name}
+                  className="card-dark p-4"
                 >
-                  <div className="w-14 h-14 rounded-lg bg-[#14100c] border border-[#8b5c28]/10 overflow-hidden shrink-0 flex items-center justify-center">
-                    <span className="text-xl font-bold text-[#5a5040]">{getCharName(char)[0]}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-[#d4c9b0]">{getCharName(char)}</h4>
-                    <p className="text-xs text-[#5a5040]">{getCharClass(char)}</p>
-                    <div className="flex items-center gap-4 mt-1 text-xs text-[#8a7e6a]">
-                      <span>Level: <strong className="text-[#d4c9b0]">{getCharLevel(char)}</strong><sup className="text-[#5a5040]">{getCharMl(char)}</sup></span>
-                      <span>Resets: <strong className="text-[#d4c9b0]">{getCharResets(char)}</strong><sup className="text-[#5a5040]">{getCharGr(char)}</sup></span>
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-lg bg-[#14100c] border border-[#8b5c28]/10 overflow-hidden shrink-0 flex items-center justify-center">
+                      <span className="text-xl font-bold text-[#5a5040]">{char.name?.[0]}</span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {useMuBackend && (
-                      <button
-                        onClick={() => handleReset(getCharName(char))}
-                        disabled={resetting === getCharName(char)}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[#c9a44a] border border-[#8b5c28]/25 rounded-lg hover:bg-[#8b5c28]/10 transition-colors disabled:opacity-50"
-                      >
-                        {resetting === getCharName(char)
-                          ? <Loader2 className="w-3 h-3 animate-spin" />
-                          : <RotateCcw className="w-3 h-3" />}
-                        Reset
-                      </button>
-                    )}
-                    <button className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[#8a7e6a] border border-[#8b5c28]/15 rounded-lg hover:bg-[#8b5c28]/10 transition-colors">
-                      Options <ChevronDown className="w-3 h-3" />
-                    </button>
-                    <span className={getCharOnline(char) ? 'badge-online' : 'badge-offline'}>
-                      {getCharOnline(char) ? 'ONLINE' : 'OFFLINE'}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-[#d4c9b0]">{char.name}</h4>
+                      <p className="text-xs text-[#5a5040]">{char.class}</p>
+                      <div className="flex items-center gap-4 mt-1 text-xs text-[#8a7e6a]">
+                        <span>Level: <strong className="text-[#d4c9b0]">{char.level}</strong></span>
+                        <span>Resets: <strong className="text-[#d4c9b0]">{char.resets}</strong><sup className="text-[#5a5040]">{char.grandResets}</sup></span>
+                        {char.strength !== undefined && (
+                          <span>STR: {char.strength} / AGI: {char.dexterity} / VIT: {char.vitality} / ENE: {char.energy}</span>
+                        )}
+                      </div>
+                      {char.money !== undefined && (
+                        <div className="flex items-center gap-4 mt-0.5 text-xs text-[#8a7e6a]">
+                          <span>Zen: <strong className="text-[#c9a44a]">{char.money?.toLocaleString()}</strong></span>
+                          {char.levelUpPoint !== undefined && (
+                            <span>Points: <strong className="text-[#d4c9b0]">{char.levelUpPoint}</strong></span>
+                          )}
+                          {(char.pkCount ?? 0) > 0 && (
+                            <span className="text-red-400">PK: {char.pkCount}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                      {useMuBackend && (
+                        <>
+                          <button
+                            onClick={() => doAction(char.name, 'reset')}
+                            disabled={!!actionLoading}
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-[#c9a44a] border border-[#8b5c28]/25 rounded-lg hover:bg-[#8b5c28]/10 transition-colors disabled:opacity-50"
+                          >
+                            {actionLoading === `reset-${char.name}`
+                              ? <Loader2 className="w-3 h-3 animate-spin" />
+                              : <RotateCcw className="w-3 h-3" />}
+                            Reset
+                          </button>
+                          <button
+                            onClick={() => doAction(char.name, 'clearPk')}
+                            disabled={!!actionLoading}
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-[#8a7e6a] border border-[#8b5c28]/15 rounded-lg hover:bg-[#8b5c28]/10 transition-colors disabled:opacity-50"
+                          >
+                            {actionLoading === `clearPk-${char.name}`
+                              ? <Loader2 className="w-3 h-3 animate-spin" />
+                              : <Skull className="w-3 h-3" />}
+                            Clear PK
+                          </button>
+                          <button
+                            onClick={() => doAction(char.name, 'unstick')}
+                            disabled={!!actionLoading}
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-[#8a7e6a] border border-[#8b5c28]/15 rounded-lg hover:bg-[#8b5c28]/10 transition-colors disabled:opacity-50"
+                          >
+                            {actionLoading === `unstick-${char.name}`
+                              ? <Loader2 className="w-3 h-3 animate-spin" />
+                              : <MapPin className="w-3 h-3" />}
+                            Unstick
+                          </button>
+                        </>
+                      )}
+                      <span className={char.isOnline ? 'badge-online' : 'badge-offline'}>
+                        {char.isOnline ? 'ONLINE' : 'OFFLINE'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}

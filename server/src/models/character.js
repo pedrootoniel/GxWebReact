@@ -5,6 +5,9 @@ const GRESET_COL = process.env.GRESET_COLUMN || 'GrandResets';
 const RESET_LEVEL = parseInt(process.env.RESET_LEVEL || '400');
 const RESET_MONEY = parseInt(process.env.RESET_MONEY || '0');
 const LEVEL_AFTER_RESET = parseInt(process.env.LEVEL_AFTER_RESET || '1');
+const GRESET_RESETS_REQUIRED = parseInt(process.env.GRESET_RESETS_REQUIRED || '10');
+const GRESET_MONEY = parseInt(process.env.GRESET_MONEY || '0');
+const GRESET_RESETS_AFTER = parseInt(process.env.GRESET_RESETS_AFTER || '0');
 
 const CharacterModel = {
   async getCharacterList(accountId) {
@@ -285,6 +288,104 @@ const CharacterModel = {
       .query('UPDATE Character SET MapNumber = 0, MapPosX = 125, MapPosY = 125 WHERE Name = @name AND AccountID = @account');
   },
 
+  async doGrandReset(characterName, accountId) {
+    const pool = await getPool();
+    const accountPool = await getPool(getAccountDb());
+
+    const charResult = await pool.request()
+      .input('name', sql.VarChar(10), characterName)
+      .input('account', sql.VarChar(10), accountId)
+      .query(`
+        SELECT Name, cLevel, ${RESET_COL} AS Resets, ${GRESET_COL} AS GrandResets, Money, AccountID
+        FROM Character
+        WHERE Name = @name AND AccountID = @account
+      `);
+
+    const char = charResult.recordset[0];
+    if (!char) return { success: false, error: 'Character not found or does not belong to your account.' };
+    if ((char.Resets || 0) < GRESET_RESETS_REQUIRED) {
+      return { success: false, error: `Character must have at least ${GRESET_RESETS_REQUIRED} resets to grand reset.` };
+    }
+
+    if (GRESET_MONEY > 0 && char.Money < GRESET_MONEY) {
+      return { success: false, error: `Not enough Zen. You need ${GRESET_MONEY} Zen.` };
+    }
+
+    const onlineRes = await accountPool.request()
+      .input('account', sql.VarChar(10), accountId)
+      .query('SELECT ConnectStat FROM MEMB_STAT WHERE memb___id = @account');
+    if (onlineRes.recordset[0]?.ConnectStat === 1) {
+      return { success: false, error: 'You must be disconnected from the game.' };
+    }
+
+    const req = pool.request()
+      .input('name', sql.VarChar(10), characterName)
+      .input('account', sql.VarChar(10), accountId)
+      .input('resetsAfter', sql.Int, GRESET_RESETS_AFTER);
+
+    let moneyClause = '';
+    if (GRESET_MONEY > 0) {
+      req.input('money', sql.BigInt, GRESET_MONEY);
+      moneyClause = ', Money = Money - @money';
+    }
+
+    await req.query(`
+      UPDATE Character
+      SET ${GRESET_COL} = ${GRESET_COL} + 1, ${RESET_COL} = @resetsAfter,
+          cLevel = 1, Experience = 0${moneyClause}
+      WHERE Name = @name AND AccountID = @account
+    `);
+
+    return { success: true, newGrandResets: (char.GrandResets || 0) + 1 };
+  },
+
+  async resetStats(characterName, accountId) {
+    const pool = await getPool();
+    const accountPool = await getPool(getAccountDb());
+
+    const onlineRes = await accountPool.request()
+      .input('account', sql.VarChar(10), accountId)
+      .query('SELECT ConnectStat FROM MEMB_STAT WHERE memb___id = @account');
+    if (onlineRes.recordset[0]?.ConnectStat === 1) {
+      return { success: false, error: 'You must be disconnected from the game.' };
+    }
+
+    const charResult = await pool.request()
+      .input('name', sql.VarChar(10), characterName)
+      .input('account', sql.VarChar(10), accountId)
+      .query(`
+        SELECT Name, Class, cLevel, ${RESET_COL} AS Resets, Strength, Dexterity, Vitality, Energy, Leadership, LevelUpPoint
+        FROM Character
+        WHERE Name = @name AND AccountID = @account
+      `);
+
+    const char = charResult.recordset[0];
+    if (!char) return { success: false, error: 'Character not found.' };
+
+    const defaults = getDefaultStats(char.Class);
+    const totalStats = (char.Strength - defaults.str) + (char.Dexterity - defaults.agi) +
+                       (char.Vitality - defaults.vit) + (char.Energy - defaults.ene) +
+                       (char.Leadership > 0 ? (char.Leadership - defaults.cmd) : 0);
+    const newLvlUp = char.LevelUpPoint + totalStats;
+
+    await pool.request()
+      .input('name', sql.VarChar(10), characterName)
+      .input('account', sql.VarChar(10), accountId)
+      .input('str', sql.Int, defaults.str)
+      .input('agi', sql.Int, defaults.agi)
+      .input('vit', sql.Int, defaults.vit)
+      .input('ene', sql.Int, defaults.ene)
+      .input('cmd', sql.Int, defaults.cmd)
+      .input('lvlup', sql.Int, newLvlUp)
+      .query(`
+        UPDATE Character
+        SET Strength = @str, Dexterity = @agi, Vitality = @vit, Energy = @ene, Leadership = @cmd, LevelUpPoint = @lvlup
+        WHERE Name = @name AND AccountID = @account
+      `);
+
+    return { success: true, message: 'Stats reset successfully.' };
+  },
+
   async getAccountCharacters(accountId) {
     const pool = await getPool();
     const result = await pool.request()
@@ -342,6 +443,26 @@ function getClassName(code) {
     192: 'Lemuria Mage', 195: 'Warmage',
   };
   return map[code] ?? `Class ${code}`;
+}
+
+function getDefaultStats(classCode) {
+  const classBase = Math.floor(classCode / 16) * 16;
+  const defaults = {
+    0:   { str: 18, agi: 18, vit: 15, ene: 30, cmd: 0 },
+    16:  { str: 28, agi: 20, vit: 25, ene: 10, cmd: 0 },
+    32:  { str: 22, agi: 25, vit: 15, ene: 20, cmd: 0 },
+    48:  { str: 26, agi: 26, vit: 26, ene: 26, cmd: 0 },
+    64:  { str: 26, agi: 20, vit: 20, ene: 15, cmd: 25 },
+    80:  { str: 21, agi: 21, vit: 18, ene: 23, cmd: 0 },
+    96:  { str: 32, agi: 27, vit: 25, ene: 20, cmd: 0 },
+    112: { str: 30, agi: 30, vit: 20, ene: 24, cmd: 0 },
+    128: { str: 18, agi: 18, vit: 15, ene: 30, cmd: 0 },
+    144: { str: 28, agi: 20, vit: 25, ene: 10, cmd: 0 },
+    160: { str: 26, agi: 26, vit: 26, ene: 26, cmd: 0 },
+    176: { str: 18, agi: 18, vit: 15, ene: 30, cmd: 0 },
+    192: { str: 18, agi: 18, vit: 15, ene: 30, cmd: 0 },
+  };
+  return defaults[classBase] || { str: 18, agi: 18, vit: 15, ene: 15, cmd: 0 };
 }
 
 function formatCharacter(row) {

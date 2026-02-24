@@ -8,6 +8,9 @@ const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth');
 const rankingRoutes = require('./routes/rankings');
 const accountRoutes = require('./routes/account');
+const shopRoutes = require('./routes/shop');
+const marketRoutes = require('./routes/market');
+const vipRoutes = require('./routes/vip');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { getPool, closeAllPools } = require('./config/database');
 
@@ -46,6 +49,9 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/rankings', rankingRoutes);
 app.use('/api/account', accountRoutes);
+app.use('/api/shop', shopRoutes);
+app.use('/api/market', marketRoutes);
+app.use('/api/vip', vipRoutes);
 
 app.use(errorHandler);
 

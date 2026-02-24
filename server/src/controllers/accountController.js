@@ -85,6 +85,42 @@ const AccountController = {
       next(err);
     }
   },
+
+  async grandResetCharacter(req, res, next) {
+    try {
+      const { characterName } = req.body;
+      if (!characterName) {
+        return res.status(400).json({ error: 'Character name is required.' });
+      }
+
+      const result = await CharacterModel.doGrandReset(characterName.trim(), req.user.username);
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      res.json({ message: 'Grand Reset successful!', newGrandResets: result.newGrandResets });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async resetStats(req, res, next) {
+    try {
+      const { characterName } = req.body;
+      if (!characterName) {
+        return res.status(400).json({ error: 'Character name is required.' });
+      }
+
+      const result = await CharacterModel.resetStats(characterName.trim(), req.user.username);
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      res.json({ message: result.message });
+    } catch (err) {
+      next(err);
+    }
+  },
 };
 
 module.exports = AccountController;

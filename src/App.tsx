@@ -11,6 +11,9 @@ import RulesPage from './pages/RulesPage';
 import GuidesPage from './pages/GuidesPage';
 import SupportPage from './pages/SupportPage';
 import AccountPage from './pages/AccountPage';
+import ShopPage from './pages/ShopPage';
+import MarketPage from './pages/MarketPage';
+import AdminPage from './pages/AdminPage';
 
 export default function App() {
   const [loginOpen, setLoginOpen] = useState(false);
@@ -57,6 +60,9 @@ export default function App() {
           <Route path="/guides" element={<GuidesPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/market" element={<MarketPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

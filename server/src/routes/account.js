@@ -9,5 +9,7 @@ router.post('/reset', authMiddleware, AccountController.resetCharacter);
 router.post('/add-stats', authMiddleware, AccountController.addStats);
 router.post('/clear-pk', authMiddleware, AccountController.clearPk);
 router.post('/unstick', authMiddleware, AccountController.unstick);
+router.post('/grand-reset', authMiddleware, AccountController.grandResetCharacter);
+router.post('/reset-stats', authMiddleware, AccountController.resetStats);
 
 module.exports = router;

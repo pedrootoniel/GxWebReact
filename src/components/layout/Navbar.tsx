@@ -10,6 +10,8 @@ interface NavbarProps {
 const navLinks = [
   { label: 'News', path: '/' },
   { label: 'Download', path: '/download' },
+  { label: 'Shop', path: '/shop' },
+  { label: 'Market', path: '/market' },
   {
     label: 'Rankings',
     path: '/rankings',
@@ -18,7 +20,6 @@ const navLinks = [
       { label: 'Guilds', path: '/rankings?tab=guilds' },
     ],
   },
-  { label: 'Rules', path: '/rules' },
   { label: 'Guides', path: '/guides' },
   { label: 'Support', path: '/support' },
 ];
@@ -27,7 +28,7 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -95,7 +96,15 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
             )}
           </div>
 
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-2">
+            {user && profile?.is_admin && (
+              <Link
+                to="/admin"
+                className="px-4 py-1.5 text-sm rounded-lg tracking-wide text-[#c9a44a] border border-[#8b5c28]/25 hover:bg-[#8b5c28]/10 transition-colors"
+              >
+                Admin
+              </Link>
+            )}
             {user ? (
               <Link
                 to="/account"

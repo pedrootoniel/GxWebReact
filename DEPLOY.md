@@ -48,7 +48,7 @@ npm install
 
 # Test the server
 node src/index.js
-# You should see: "[Server] Pulse MuCMS API running on port 3001"
+# You should see: "[Server] GxGA MuCMS API running on port 3001"
 ```
 
 ---
